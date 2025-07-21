@@ -1,9 +1,7 @@
 package com.example.productsreview.controller.dto;
 
-import com.example.productsreview.entity.Comment;
-import com.example.productsreview.entity.ReviewEntity;
+import com.example.productsreview.domain.entity.Comment;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public record ReviewResponse(
@@ -14,17 +12,4 @@ public record ReviewResponse(
         String content,
         List<Comment> comments,
         Double rating
-) {
-
-    public static ReviewResponse from(ReviewEntity entity) {
-        return new ReviewResponse(
-                entity.getReviewId(),
-                entity.getProductId(),
-                entity.getCustomerId(),
-                entity.getCustomerName(),
-                entity.getContent(),
-                entity.getComments(),
-                entity.getRating()
-        );
-    }
-}
+) {}
