@@ -10,7 +10,12 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMqConfig {
 
     public static final String REVIEW_CREATED_QUEUE = "review.created.queue";
+    public static final String REVIEW_LIKED_QUEUE = "review.liked.queue";
+    public static final String REVIEW_DISLIKED_QUEUE = "review.disliked.queue";
     public static final String COMMENT_ADDED_QUEUE = "comment.added.queue";
+    public static final String COMMENT_LIKED_QUEUE = "comment.liked.queue";
+    public static final String COMMENT_DISLIKED_QUEUE = "comment.disliked.queue";
+
 
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
@@ -23,7 +28,28 @@ public class RabbitMqConfig {
     }
 
     @Bean
+    public Declarable reviewLikedQueue() {
+        return new Queue(REVIEW_LIKED_QUEUE);
+    }
+
+    @Bean
+    public Declarable reviewDislikedQueue() {
+        return new Queue(REVIEW_DISLIKED_QUEUE);
+    }
+
+    @Bean
     public Declarable commentAddedQueue() {
         return new Queue(COMMENT_ADDED_QUEUE);
     }
+
+    @Bean
+    public Queue commentLikedQueue() {
+        return new Queue(COMMENT_LIKED_QUEUE);
+    }
+
+    @Bean
+    public Queue commentDislikedQueue() {
+        return new Queue(COMMENT_DISLIKED_QUEUE);
+    }
+
 }
