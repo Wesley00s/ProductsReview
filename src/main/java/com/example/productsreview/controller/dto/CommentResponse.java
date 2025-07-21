@@ -1,7 +1,6 @@
 package com.example.productsreview.controller.dto;
 
-import com.example.productsreview.entity.Comment;
-import com.example.productsreview.entity.ReviewEntity;
+import com.example.productsreview.domain.entity.Comment;
 
 import java.util.List;
 

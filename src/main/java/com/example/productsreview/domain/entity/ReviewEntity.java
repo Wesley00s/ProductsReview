@@ -1,4 +1,4 @@
-package com.example.productsreview.entity;
+package com.example.productsreview.domain.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +13,9 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Document(collection = "reviews")
 @Getter
@@ -28,12 +30,26 @@ public class ReviewEntity {
     private String customerId;
     private String customerName;
     private String content;
-    private int reviewLikes;
-    private int reviewDislikes;
+
+    private Set<String> likedBy    = new HashSet<>();
+    private Set<String> dislikedBy = new HashSet<>();
+
     @Field(targetType = FieldType.DOUBLE)
     private Double rating;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
     private List<Comment> comments = new ArrayList<>();
+
+    public Integer getTotalComments() {
+        return comments != null ? comments.size() : 0;
+    }
+
+    public Integer getReviewLikes() {
+        return likedBy.size();
+    }
+    public Integer getReviewDislikes() {
+        return dislikedBy.size();
+    }
+
 }
