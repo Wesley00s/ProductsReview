@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: ProductsReview
+  data:
+    mongodb:
+      authentication-database: ${SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE}
+      auto-index-creation: ${SPRING_DATA_MONGODB_AUTO_INDEX_CREATION}
+      host: ${SPRING_DATA_MONGODB_HOST}
+      port: ${SPRING_DATA_MONGODB_PORT}
+      database: ${SPRING_DATA_MONGODB_DATABASE}
+      username: ${SPRING_DATA_MONGODB_USERNAME}
+      password: ${SPRING_DATA_MONGODB_PASSWORD}
