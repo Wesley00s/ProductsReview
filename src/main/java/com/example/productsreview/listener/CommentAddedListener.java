@@ -1,7 +1,7 @@
 package com.example.productsreview.listener;
 
-import com.example.productsreview.entity.ReviewEntity;
-import com.example.productsreview.entity.Comment;
+import com.example.productsreview.domain.entity.ReviewEntity;
+import com.example.productsreview.domain.entity.Comment;
 import com.example.productsreview.listener.dto.CommentAddedEvent;
 import com.example.productsreview.repository.ReviewRepository;
 import org.slf4j.Logger;
@@ -10,7 +10,9 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,9 +54,10 @@ public class CommentAddedListener {
         newComment.setContent(event.content());
         newComment.setMentionedUserId(event.mentionedUserId());
         newComment.setMentionedUserName(event.mentionedUserName());
-        newComment.setLikes(0);
-        newComment.setDislikes(0);
+        newComment.setLikedBy(new HashSet<>());
+        newComment.setDislikedBy(new HashSet<>());
         newComment.setReplies(new ArrayList<>());
+        newComment.setCreatedAt(LocalDateTime.now());
 
         if (event.parentCommentId() == null) {
             review.getComments().add(newComment);
