@@ -1,6 +1,7 @@
 spring:
   application:
     name: ProductsReview
+
   data:
     mongodb:
       authentication-database: ${SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE}
@@ -10,3 +11,16 @@ spring:
       database: ${SPRING_DATA_MONGODB_DATABASE}
       username: ${SPRING_DATA_MONGODB_USERNAME}
       password: ${SPRING_DATA_MONGODB_PASSWORD}
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+
+server:
+  port: 8000
+
+springdoc:
+  swagger-ui:
+    path: /docs
