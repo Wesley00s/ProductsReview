@@ -129,8 +129,10 @@ public class ReviewController {
     }
 
     @PostMapping("/{reviewId}/like")
-    public ResponseEntity<Void> like(@PathVariable String reviewId,
-                                     @RequestParam String customerId) {
+    public ResponseEntity<Void> like(
+            @PathVariable String reviewId,
+            @RequestParam String customerId
+    ) {
         rabbitTemplate.convertAndSend(
                 RabbitMqConfig.REVIEW_LIKED_QUEUE,
                 new ReviewLikedEvent(reviewId, customerId)
@@ -139,8 +141,10 @@ public class ReviewController {
     }
 
     @PostMapping("/{reviewId}/dislike")
-    public ResponseEntity<Void> dislike(@PathVariable String reviewId,
-                                        @RequestParam String customerId) {
+    public ResponseEntity<Void> dislike(
+            @PathVariable String reviewId,
+            @RequestParam String customerId
+    ) {
         rabbitTemplate.convertAndSend(
                 RabbitMqConfig.REVIEW_DISLIKED_QUEUE,
                 new ReviewDislikedEvent(reviewId, customerId)
@@ -149,9 +153,11 @@ public class ReviewController {
     }
 
     @PostMapping("/{reviewId}/comments/{commentId}/like")
-    public ResponseEntity<Void> likeComment(@PathVariable String reviewId,
-                                            @PathVariable String commentId,
-                                            @RequestParam String customerId) {
+    public ResponseEntity<Void> likeComment(
+            @PathVariable String reviewId,
+            @PathVariable String commentId,
+            @RequestParam String customerId
+    ) {
         rabbitTemplate.convertAndSend(
                 RabbitMqConfig.COMMENT_LIKED_QUEUE,
                 new CommentLikedEvent(reviewId, commentId, customerId)
@@ -160,9 +166,11 @@ public class ReviewController {
     }
 
     @PostMapping("/{reviewId}/comments/{commentId}/dislike")
-    public ResponseEntity<Void> dislikeComment(@PathVariable String reviewId,
-                                               @PathVariable String commentId,
-                                               @RequestParam String customerId) {
+    public ResponseEntity<Void> dislikeComment(
+            @PathVariable String reviewId,
+            @PathVariable String commentId,
+            @RequestParam String customerId
+    ) {
         rabbitTemplate.convertAndSend(
                 RabbitMqConfig.COMMENT_DISLIKED_QUEUE,
                 new CommentDislikedEvent(reviewId, commentId, customerId)
@@ -177,8 +185,10 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{reviewId}/comments/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable String reviewId,
-                                              @PathVariable String commentId) {
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable String reviewId,
+            @PathVariable String commentId
+    ) {
         reviewService.deleteComment(reviewId, commentId);
         return ResponseEntity.noContent().build();
     }

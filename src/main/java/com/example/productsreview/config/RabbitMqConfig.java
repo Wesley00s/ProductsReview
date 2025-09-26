@@ -16,7 +16,6 @@ public class RabbitMqConfig {
     public static final String COMMENT_LIKED_QUEUE = "comment.liked.queue";
     public static final String COMMENT_DISLIKED_QUEUE = "comment.disliked.queue";
 
-
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
