@@ -2,6 +2,7 @@ services:
   mongodb:
     networks:
       - reviews-network
+      - shared_ecommerce_network
     image: mongo:latest
     container_name: mongodb
     ports:
@@ -18,6 +19,7 @@ services:
   rabbitmq:
     networks:
       - reviews-network
+      - shared_ecommerce_network
     image: rabbitmq:4.1.2-management
     container_name: rabbitmq
     ports:
@@ -51,3 +53,6 @@ services:
 
 networks:
   reviews-network:
+    driver: bridge
+  shared_ecommerce_network:
+    external: true
