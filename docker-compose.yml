@@ -28,21 +28,22 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "check_port", "--port", "5672" ]
-      interval: 5s
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       - mongodb
 
   app:
     networks:
       - reviews-network
+      - shared_ecommerce_network
     image: reviews-image:latest
     container_name: reviews
     ports:
-      - "8000:8000"
+      - "8081:8081"
     build:
       context: .
     env_file:
