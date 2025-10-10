@@ -10,11 +10,8 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
 
 import static com.example.productsreview.config.RabbitMqConfig.COMMENT_ADDED_QUEUE;
 
@@ -33,7 +30,7 @@ public class CommentAddedListener {
         CommentAddedEvent event = message.getPayload();
         logger.info("Received CommentAddedEvent: {}", event);
 
-        Optional<ReviewEntity> reviewOpt = reviewRepository.findById(event.reviewId());
+        Optional<ReviewEntity> reviewOpt = reviewRepository.findById(String.valueOf(event.reviewId()));
 
         if (reviewOpt.isEmpty()) {
             logger.error("Review not found for ID: {}", event.reviewId());
@@ -57,7 +54,7 @@ public class CommentAddedListener {
         newComment.setLikedBy(new HashSet<>());
         newComment.setDislikedBy(new HashSet<>());
         newComment.setReplies(new ArrayList<>());
-        newComment.setCreatedAt(LocalDateTime.now());
+        newComment.setCreatedAt(Instant.now());
 
         if (event.parentCommentId() == null) {
             review.getComments().add(newComment);
@@ -77,7 +74,7 @@ public class CommentAddedListener {
         }
     }
 
-    private Comment findCommentRecursive(List<Comment> comments, String commentId) {
+    private Comment findCommentRecursive(List<Comment> comments, UUID commentId) {
         for (Comment comment : comments) {
             if (comment.getCommentId().equals(commentId)) {
                 return comment;
