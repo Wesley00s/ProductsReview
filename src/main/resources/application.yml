@@ -1,6 +1,19 @@
+jwt:
+  key:
+    private:
+      path: classpath:certs/private_key.pem
+    public:
+      path: classpath:certs/public_key.pem
+app:
+  issuer: ${ISSUER}
+
 spring:
   application:
     name: ProductsReview
+
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+    time-zone: UTC
 
   data:
     mongodb:
@@ -17,6 +30,15 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
     org.springframework.security.oauth2: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,prometheus"
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 server:
   port: 8081
