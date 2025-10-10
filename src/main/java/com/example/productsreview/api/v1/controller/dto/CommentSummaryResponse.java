@@ -1,18 +1,21 @@
-package com.example.productsreview.controller.dto;
+package com.example.productsreview.api.v1.controller.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.UUID;
 
 public record CommentSummaryResponse(
-        String commentId,
+        UUID commentId,
         String customerId,
         String customerName,
         String content,
-        String parentCommentId,
+        UUID parentCommentId,
         String mentionedUserId,
         String mentionedUserName,
         Integer likes,
         Integer dislikes,
         Integer totalReplies,
-        LocalDateTime createdAt
+        Instant createdAt,
+        Boolean likedByMe,
+        Boolean dislikedByMe
 ) {
 }
