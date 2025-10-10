@@ -5,21 +5,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.Instant;
+import java.util.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Comment {
-    @Id
-    private String commentId;
+    private UUID commentId;
     private String customerId;
     private String customerName;
     private String parentCommentId;
@@ -28,12 +23,13 @@ public class Comment {
     private String content;
 
     @CreatedDate
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Instant createdAt = Instant.now();
 
-    private Set<String> likedBy    = new HashSet<>();
+    private Set<String> likedBy = new HashSet<>();
     private Set<String> dislikedBy = new HashSet<>();
 
     private String mentionedUserId;
+
     private List<Comment> replies = new ArrayList<>();
 
     public Integer getTotalReplies() {
@@ -43,6 +39,7 @@ public class Comment {
     public Integer getCommentLikes() {
         return likedBy.size();
     }
+
     public Integer getCommentDislikes() {
         return dislikedBy.size();
     }
