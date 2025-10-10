@@ -7,6 +7,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface ReviewRepository extends MongoRepository<ReviewEntity, String> {
 
-    Page<ReviewEntity> findAllByProductId(String productId, Pageable pageable);
+    Page<ReviewEntity> findAllByProductCode(String productCode, Pageable pageable);
 
 }
