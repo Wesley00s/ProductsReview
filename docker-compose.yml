@@ -16,6 +16,21 @@ services:
       retries: 3
       start_period: 5s
 
+  mongodb-exporter:
+    image: bitnamisecure/mongodb-exporter:latest
+    container_name: mongodb-exporter
+    restart: unless-stopped
+    networks:
+      - reviews-network
+      - shared_ecommerce_network
+    ports:
+      - "9216:9216"
+    environment:
+      - MONGODB_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/?authSource=admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
   rabbitmq:
     networks:
       - reviews-network
@@ -25,8 +40,11 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+      - "15692:15692"
     env_file:
       - .env
+    environment:
+      - RABBITMQ_PLUGINS=[rabbitmq_prometheus_plugin].
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "status"]
       interval: 10s
