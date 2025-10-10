@@ -1,21 +1,25 @@
-package com.example.productsreview.controller;
+package com.example.productsreview.api.v1.controller;
 
+import com.example.productsreview.api.v1.controller.dto.*;
 import com.example.productsreview.config.RabbitMqConfig;
-import com.example.productsreview.controller.dto.*;
 import com.example.productsreview.domain.enumeration.SortField;
 import com.example.productsreview.listener.dto.*;
 import com.example.productsreview.service.ReviewService;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/reviews")
+@RequestMapping("/v1/reviews")
 public class ReviewController {
     private final ReviewService reviewService;
     private final RabbitTemplate rabbitTemplate;
@@ -25,21 +29,29 @@ public class ReviewController {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    @GetMapping("/product/{productId}")
+    @GetMapping("/product/{productCode}")
     public ResponseEntity<ApiResponse<ReviewSummaryResponse>> findSummaries(
-            @PathVariable String productId,
+            @PathVariable String productCode,
+            Authentication authentication,
             @RequestParam(defaultValue = "createdAt") SortField sortField,
             @RequestParam(defaultValue = "DESC") Sort.Direction direction,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size
     ) {
-        var summaries = reviewService.findSummariesByProductId(
-                productId,
+        String currentUserId = null;
+        if (authentication != null && authentication.getPrincipal() instanceof AuthenticatedUser user) {
+            currentUserId = user.id();
+        }
+
+        var summaries = reviewService.findSummariesByProductCode(
+                productCode,
+                currentUserId,
                 sortField.getFieldName(),
                 direction,
                 page,
                 size
         );
+
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         summaries.getContent(),
@@ -51,31 +63,52 @@ public class ReviewController {
     @GetMapping("/{reviewId}/comments")
     public ResponseEntity<List<CommentSummaryResponse>> findComments(
             @PathVariable String reviewId,
+            Authentication authentication,
             @RequestParam(defaultValue = "0") Integer skip,
             @RequestParam(defaultValue = "10") Integer limit
     ) {
-        var comments = reviewService.findCommentsByReviewId(reviewId, skip, limit);
+        String currentUserId = null;
+        if (authentication != null && authentication.getPrincipal() instanceof AuthenticatedUser user) {
+            currentUserId = user.id();
+        }
+
+        var comments = reviewService.findCommentsByReviewId(reviewId, currentUserId, skip, limit);
         return ResponseEntity.ok(comments);
     }
 
     @GetMapping("/{reviewId}/comments/{commentId}/replies")
     public ResponseEntity<List<CommentSummaryResponse>> findReplies(
             @PathVariable String reviewId,
-            @PathVariable String commentId
+            Authentication authentication,
+            @PathVariable UUID commentId
     ) {
-        var replies = reviewService.findReplies(reviewId, commentId);
+        String currentUserId = null;
+        if (authentication != null && authentication.getPrincipal() instanceof AuthenticatedUser user) {
+            currentUserId = user.id();
+        }
+
+        var replies = reviewService.findReplies(reviewId, currentUserId, commentId);
         return ResponseEntity.ok(replies);
     }
 
     @PostMapping
     public ResponseEntity<ReviewResponse> createReview(
-            @RequestBody CreateReviewRequest request
+            @RequestBody CreateReviewRequest request,
+            Authentication authentication
     ) {
+        if (authentication == null || !(authentication.getPrincipal()
+                instanceof AuthenticatedUser(
+                String id, String userName, String email
+        ))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         var event = new ReviewCreatedEvent(
-                request.reviewId(),
+                UUID.randomUUID(),
                 request.productId(),
-                request.customerId(),
-                request.customerName(),
+                request.productCode(),
+                id,
+                userName,
                 request.content(),
                 request.rating()
         );
@@ -83,15 +116,14 @@ public class ReviewController {
         rabbitTemplate.convertAndSend(RabbitMqConfig.REVIEW_CREATED_QUEUE, event);
 
         return ResponseEntity.created(
-                URI.create("/reviews/" + request.reviewId())
+                URI.create("/reviews/" + event.reviewId())
         ).body(
                 new ReviewResponse(
-                        request.reviewId(),
+                        event.reviewId(),
                         request.productId(),
-                        request.customerId(),
-                        request.customerName(),
+                        id,
+                        userName,
                         request.content(),
-                        new ArrayList<>(),
                         request.rating()
                 )
         );
@@ -100,14 +132,22 @@ public class ReviewController {
     @PostMapping("/{reviewId}/comments")
     public ResponseEntity<CommentResponse> addComment(
             @PathVariable String reviewId,
-            @RequestBody CreateCommentRequest request
+            @RequestBody CreateCommentRequest request,
+            Authentication authentication
     ) {
+        if (authentication == null || !(authentication.getPrincipal()
+                instanceof AuthenticatedUser(
+                String id, String userName, String email
+        ))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         var event = new CommentAddedEvent(
                 reviewId,
-                request.commentId(),
+                UUID.randomUUID(),
                 request.parentCommentId(),
-                request.customerId(),
-                request.customerName(),
+                id,
+                userName,
                 request.content(),
                 request.mentionedUserId(),
                 request.mentionedUserName()
@@ -116,12 +156,12 @@ public class ReviewController {
         rabbitTemplate.convertAndSend(RabbitMqConfig.COMMENT_ADDED_QUEUE, event);
 
         return ResponseEntity.created(
-                URI.create("/reviews/" + reviewId + "/comments/" + request.commentId())
+                URI.create("/reviews/" + reviewId + "/comments/" + event.commentId())
         ).body(
                 new CommentResponse(
-                        request.commentId(),
-                        request.customerId(),
-                        request.customerName(),
+                        event.commentId(),
+                        id,
+                        userName,
                         request.content(),
                         new ArrayList<>()
                 )
@@ -131,11 +171,16 @@ public class ReviewController {
     @PostMapping("/{reviewId}/like")
     public ResponseEntity<Void> like(
             @PathVariable String reviewId,
-            @RequestParam String customerId
+            Authentication authentication
     ) {
+        String currentUserId = null;
+        if (authentication != null && authentication.getPrincipal() instanceof AuthenticatedUser user) {
+            currentUserId = user.id();
+        }
+
         rabbitTemplate.convertAndSend(
                 RabbitMqConfig.REVIEW_LIKED_QUEUE,
-                new ReviewLikedEvent(reviewId, customerId)
+                new ReviewLikedEvent(reviewId, currentUserId)
         );
         return ResponseEntity.accepted().build();
     }
@@ -143,11 +188,16 @@ public class ReviewController {
     @PostMapping("/{reviewId}/dislike")
     public ResponseEntity<Void> dislike(
             @PathVariable String reviewId,
-            @RequestParam String customerId
+            Authentication authentication
     ) {
+        String currentUserId = null;
+        if (authentication != null && authentication.getPrincipal() instanceof AuthenticatedUser user) {
+            currentUserId = user.id();
+        }
+
         rabbitTemplate.convertAndSend(
                 RabbitMqConfig.REVIEW_DISLIKED_QUEUE,
-                new ReviewDislikedEvent(reviewId, customerId)
+                new ReviewDislikedEvent(reviewId, currentUserId)
         );
         return ResponseEntity.accepted().build();
     }
@@ -155,12 +205,17 @@ public class ReviewController {
     @PostMapping("/{reviewId}/comments/{commentId}/like")
     public ResponseEntity<Void> likeComment(
             @PathVariable String reviewId,
-            @PathVariable String commentId,
-            @RequestParam String customerId
+            Authentication authentication,
+            @PathVariable UUID commentId
     ) {
+        String currentUserId = null;
+        if (authentication != null && authentication.getPrincipal() instanceof AuthenticatedUser user) {
+            currentUserId = user.id();
+        }
+
         rabbitTemplate.convertAndSend(
                 RabbitMqConfig.COMMENT_LIKED_QUEUE,
-                new CommentLikedEvent(reviewId, commentId, customerId)
+                new CommentLikedEvent(reviewId, commentId, currentUserId)
         );
         return ResponseEntity.accepted().build();
     }
@@ -168,12 +223,17 @@ public class ReviewController {
     @PostMapping("/{reviewId}/comments/{commentId}/dislike")
     public ResponseEntity<Void> dislikeComment(
             @PathVariable String reviewId,
-            @PathVariable String commentId,
-            @RequestParam String customerId
+            @PathVariable UUID commentId,
+            Authentication authentication
     ) {
+        String currentUserId = null;
+        if (authentication != null && authentication.getPrincipal() instanceof AuthenticatedUser user) {
+            currentUserId = user.id();
+        }
+
         rabbitTemplate.convertAndSend(
                 RabbitMqConfig.COMMENT_DISLIKED_QUEUE,
-                new CommentDislikedEvent(reviewId, commentId, customerId)
+                new CommentDislikedEvent(reviewId, commentId, currentUserId)
         );
         return ResponseEntity.accepted().build();
     }
@@ -187,7 +247,7 @@ public class ReviewController {
     @DeleteMapping("/{reviewId}/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable String reviewId,
-            @PathVariable String commentId
+            @PathVariable UUID commentId
     ) {
         reviewService.deleteComment(reviewId, commentId);
         return ResponseEntity.noContent().build();
