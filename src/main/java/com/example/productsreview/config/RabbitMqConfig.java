@@ -15,6 +15,7 @@ public class RabbitMqConfig {
     public static final String COMMENT_ADDED_QUEUE = "comment.added.queue";
     public static final String COMMENT_LIKED_QUEUE = "comment.liked.queue";
     public static final String COMMENT_DISLIKED_QUEUE = "comment.disliked.queue";
+    public static final String PRODUCT_RATING_UPDATED_QUEUE = "product.rating.updated.queue";
 
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
@@ -51,4 +52,8 @@ public class RabbitMqConfig {
         return new Queue(COMMENT_DISLIKED_QUEUE);
     }
 
+    @Bean
+    public Queue productRatingUpdatedQueue() {
+        return new Queue(PRODUCT_RATING_UPDATED_QUEUE);
+    }
 }
