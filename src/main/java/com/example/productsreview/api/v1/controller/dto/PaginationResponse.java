@@ -1,4 +1,4 @@
-package com.example.productsreview.controller.dto;
+package com.example.productsreview.api.v1.controller.dto;
 
 import org.springframework.data.domain.Page;
 
