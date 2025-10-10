@@ -11,11 +11,8 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.Instant;
+import java.util.*;
 
 @Document(collection = "reviews")
 @Getter
@@ -24,21 +21,22 @@ import java.util.Set;
 @NoArgsConstructor
 public class ReviewEntity {
     @MongoId
-    private String reviewId;
+    private UUID reviewId;
     @Indexed(name = "product_id_index")
-    private String productId;
+    private Long productId;
+    private String productCode;
     private String customerId;
     private String customerName;
     private String content;
 
-    private Set<String> likedBy    = new HashSet<>();
+    private Set<String> likedBy = new HashSet<>();
     private Set<String> dislikedBy = new HashSet<>();
 
     @Field(targetType = FieldType.DOUBLE)
     private Double rating;
 
     @CreatedDate
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Instant createdAt = Instant.now();
     private List<Comment> comments = new ArrayList<>();
 
     public Integer getTotalComments() {
@@ -48,6 +46,7 @@ public class ReviewEntity {
     public Integer getReviewLikes() {
         return likedBy.size();
     }
+
     public Integer getReviewDislikes() {
         return dislikedBy.size();
     }
