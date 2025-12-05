@@ -17,7 +17,7 @@ services:
       start_period: 5s
 
   mongodb-exporter:
-    image: bitnamisecure/mongodb-exporter:latest
+    image: percona/mongodb_exporter:0.40.0
     container_name: mongodb-exporter
     restart: unless-stopped
     networks:
@@ -27,6 +27,8 @@ services:
       - "9216:9216"
     environment:
       - MONGODB_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/?authSource=admin
+    command:
+      - '--collect-all'
     depends_on:
       mongodb:
         condition: service_healthy
@@ -59,7 +61,7 @@ services:
       - reviews-network
       - shared_ecommerce_network
     image: reviews-image:latest
-    container_name: reviews
+    container_name: reviews-app
     ports:
       - "8081:8081"
     build:
