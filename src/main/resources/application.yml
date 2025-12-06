@@ -1,9 +1,7 @@
 jwt:
   key:
-    private:
-      path: classpath:/etc/secrets/private_key.pem
     public:
-      path: classpath:/etc/secrets/public_key.pem
+      path: /etc/secrets/public_key.pem
 app:
   issuer: ${ISSUER}
 
