@@ -52,14 +52,22 @@ public class TokenService {
     private byte[] loadKeyBytes(String path) throws Exception {
         String content;
         if (path.startsWith("classpath:")) {
-            InputStream is = getClass().getResourceAsStream("/" + path.substring(10));
+            String resourcePath = "/" + path.substring(10);
+            InputStream is = getClass().getResourceAsStream(resourcePath);
+
+            if (is == null) {
+                throw new RuntimeException("Arquivo não encontrado no classpath: " + resourcePath);
+            }
+
             content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         } else {
+            log.info("Tentando carregar chave do sistema de arquivos: {}", path);
             content = new String(Files.readAllBytes(Paths.get(path)));
         }
 
         String key = content
                 .replaceAll("\\n", "")
+                .replaceAll("\\r", "")
                 .replaceAll("-----(BEGIN|END) (PRIVATE|PUBLIC) KEY-----", "");
 
         return Base64.getDecoder().decode(key);
