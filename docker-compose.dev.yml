@@ -1,0 +1,79 @@
+services:
+  mongodb:
+    networks:
+      - reviews-network
+      - shared_ecommerce_network
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40.0
+    container_name: mongodb-exporter
+    restart: unless-stopped
+    networks:
+      - reviews-network
+      - shared_ecommerce_network
+    ports:
+      - "9216:9216"
+    environment:
+      - MONGODB_URI=${SPRING_DATA_MONGODB_URI}
+    command:
+      - '--collect-all'
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  rabbitmq:
+    networks:
+      - reviews-network
+      - shared_ecommerce_network
+    image: rabbitmq:4.1.2-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "15692:15692"
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_PLUGINS=[rabbitmq_prometheus_plugin].
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      - mongodb
+
+  app:
+    networks:
+      - reviews-network
+      - shared_ecommerce_network
+    image: wesley00s/product-reviews:latest
+    container_name: reviews-app
+    ports:
+      - "8081:8081"
+    build:
+      context: .
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - rabbitmq
+
+networks:
+  reviews-network:
+    driver: bridge
+  shared_ecommerce_network:
+    external: true
