@@ -1,7 +1,7 @@
 jwt:
   key:
     public:
-      path: classpath:certs/public_key.pem
+      path: /etc/secrets/public_key.pem
 app:
   issuer: ${ISSUER}
 
